@@ -79,6 +79,87 @@ def ac_switch(enable: bool) -> bytes:
     return build_command(4, 32, 66, arg)
 
 
+# ---------------------------------------------------------------------------
+# Query commands from the official integration
+# ---------------------------------------------------------------------------
+
+def get_product_info(dst: int = 2) -> bytes:
+    """Return product information command."""
+    return build_command(dst, 1, 5)
+
+
+def get_cpu_id() -> bytes:
+    """Return CPU ID command."""
+    return build_command(2, 1, 64)
+
+
+def get_serial_main() -> bytes:
+    """Return main serial number command."""
+    return build_command(2, 1, 65)
+
+
+def get_serial_extra() -> bytes:
+    """Return extra serial number command."""
+    return build_command(6, 1, 65)
+
+
+def get_pd() -> bytes:
+    """Return power data command."""
+    return build_command(2, 32, 2, b"\0")
+
+
+def get_ems_main() -> bytes:
+    """Return main EMS data command."""
+    return build_command(3, 32, 2)
+
+
+def get_inverter() -> bytes:
+    """Return inverter data command."""
+    return build_command(4, 32, 2)
+
+
+def get_ems_extra() -> bytes:
+    """Return extra EMS data command."""
+    return build_command(6, 32, 2)
+
+
+def get_lcd() -> bytes:
+    """Return LCD settings command."""
+    return build_command(2, 32, 40)
+
+
+def is_delta(product: int) -> bool:
+    """Return True if the product is a DELTA model."""
+    return 12 < product < 16
+
+
+def get_dc_in_type(product: int) -> bytes:
+    """Return DC input type command."""
+    if is_delta(product):
+        cmd = (5, 32, 82)
+    else:
+        cmd = (4, 32, 68)
+    return build_command(*cmd, b"\0")
+
+
+def get_dc_in_current(product: int) -> bytes:
+    """Return DC input current command."""
+    dst = 5 if is_delta(product) else 4
+    return build_command(dst, 32, 72)
+
+
+def get_fan_auto() -> bytes:
+    """Return fan auto state command."""
+    return build_command(4, 32, 74)
+
+
+def get_lab() -> bytes:
+    """Return lab mode state command."""
+    return build_command(4, 32, 84)
+
+
 if __name__ == "__main__":
-    cmd = ac_switch(True)
-    print(cmd.hex())
+    # Print example commands for verification
+    print("AC switch on:", ac_switch(True).hex())
+    print("get_pd:", get_pd().hex())
+    print("get_ems_main:", get_ems_main().hex())
