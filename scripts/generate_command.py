@@ -158,6 +158,28 @@ def get_lab() -> bytes:
     return build_command(4, 32, 84)
 
 
+def list_commands() -> list[tuple[str, bytes]]:
+    """Return sample commands for the Delta Pro."""
+    product = 13  # any value recognized as a DELTA model
+    return [
+        ("ac_switch_on", ac_switch(True)),
+        ("ac_switch_off", ac_switch(False)),
+        ("get_product_info", get_product_info()),
+        ("get_cpu_id", get_cpu_id()),
+        ("get_serial_main", get_serial_main()),
+        ("get_serial_extra", get_serial_extra()),
+        ("get_pd", get_pd()),
+        ("get_ems_main", get_ems_main()),
+        ("get_inverter", get_inverter()),
+        ("get_ems_extra", get_ems_extra()),
+        ("get_lcd", get_lcd()),
+        ("get_dc_in_type", get_dc_in_type(product)),
+        ("get_dc_in_current", get_dc_in_current(product)),
+        ("get_fan_auto", get_fan_auto()),
+        ("get_lab", get_lab()),
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Frame decoding helpers
 # ---------------------------------------------------------------------------
@@ -202,15 +224,19 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        for arg in sys.argv[1:]:
-            frame = bytes.fromhex(arg)
-            info = parse_frame(frame)
-            name = _CMD_NAMES.get((info["dst"], info["set"], info["id"]))
-            desc = f" -> {name}" if name else ""
-            print(arg + desc)
-            print(" ", info)
+        if sys.argv[1] == "--write":
+            path = sys.argv[2] if len(sys.argv) > 2 else "commands.txt"
+            with open(path, "w", encoding="utf-8") as f:
+                for name, cmd in list_commands():
+                    f.write(f"{name}: {cmd.hex()}\n")
+        else:
+            for arg in sys.argv[1:]:
+                frame = bytes.fromhex(arg)
+                info = parse_frame(frame)
+                name = _CMD_NAMES.get((info["dst"], info["set"], info["id"]))
+                desc = f" -> {name}" if name else ""
+                print(arg + desc)
+                print(" ", info)
     else:
-        # Print example commands for verification
-        print("AC switch on:", ac_switch(True).hex())
-        print("get_pd:", get_pd().hex())
-        print("get_ems_main:", get_ems_main().hex())
+        for name, cmd in list_commands():
+            print(f"{name}: {cmd.hex()}")
